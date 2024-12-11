@@ -1,0 +1,131 @@
+{
+  "cache_timestamp": 1733236280,
+  "leaderboard": {
+    "members": {
+      "76357": {
+        "completion_day_level": {
+          "2": {
+            "1": {
+              "star_index": 269905,
+              "get_star_ts": 1733146063
+            }
+          },
+          "1": {
+            "2": {
+              "get_star_ts": 1733139714,
+              "star_index": 246269
+            },
+            "1": {
+              "star_index": 196650,
+              "get_star_ts": 1733128177
+            }
+          },
+          "3": {
+            "1": {
+              "star_index": 550156,
+              "get_star_ts": 1733224062
+            },
+            "2": {
+              "star_index": 555178,
+              "get_star_ts": 1733225564
+            }
+          }
+        },
+        "name": "Benjamin Quorning",
+        "id": 76357,
+        "last_star_ts": 1733225564,
+        "global_score": 0,
+        "local_score": 33,
+        "stars": 5
+      },
+      "3270269": {
+        "name": "Edyta Rozczypała",
+        "id": 3270269,
+        "completion_day_level": {
+        },
+        "local_score": 0,
+        "stars": 0,
+        "global_score": 0,
+        "last_star_ts": 0
+      },
+      "1060662": {
+        "completion_day_level": {
+          "1": {
+            "1": {
+              "get_star_ts": 1733057269,
+              "star_index": 0
+            },
+            "2": {
+              "star_index": 775,
+              "get_star_ts": 1733057539
+            }
+          },
+          "2": {
+            "1": {
+              "get_star_ts": 1733167297,
+              "star_index": 356532
+            },
+            "2": {
+              "star_index": 358716,
+              "get_star_ts": 1733167854
+            }
+          }
+        },
+        "id": 1060662,
+        "name": "razumau",
+        "last_star_ts": 1733167854,
+        "global_score": 0,
+        "stars": 4,
+        "local_score": 27
+      },
+      "703988": {
+        "local_score": 0,
+        "stars": 0,
+        "last_star_ts": 0,
+        "global_score": 0,
+        "id": 703988,
+        "name": "Thomas Countz",
+        "completion_day_level": {
+        }
+      },
+      "1171814": {
+        "id": 1171814,
+        "name": "Jan Schill",
+        "completion_day_level": {
+          "1": {
+            "1": {
+              "get_star_ts": 1733140314,
+              "star_index": 248502
+            }
+          }
+        },
+        "local_score": 5,
+        "stars": 1,
+        "last_star_ts": 1733140314,
+        "global_score": 0
+      },
+      "1590049": {
+        "id": 1590049,
+        "name": "Matthew Riddle",
+        "completion_day_level": {
+        },
+        "stars": 0,
+        "local_score": 0,
+        "global_score": 0,
+        "last_star_ts": 0
+      },
+      "1718699": {
+        "last_star_ts": 0,
+        "global_score": 0,
+        "local_score": 0,
+        "stars": 0,
+        "completion_day_level": {
+        },
+        "id": 1718699,
+        "name": "HeyNonster"
+      }
+    },
+    "event": "2024",
+    "owner_id": 703988
+  }
+}
