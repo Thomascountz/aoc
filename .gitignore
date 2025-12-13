@@ -1,0 +1,4 @@
+.ruby-lsp
+.bundle
+mise.toml
+.zig-cache
