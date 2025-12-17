@@ -73,7 +73,3 @@ func absInt(a int) int {
 		return a
 	}
 }
-
-// Answers
-// 01.a 1026
-// 01.b 5923
