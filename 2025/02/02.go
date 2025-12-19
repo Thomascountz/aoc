@@ -15,31 +15,50 @@ func main() {
 
 	invalidSum := 0
 	for r := range s.SplitSeq(string(data), ",") {
-		rangeBeginrangeEnd := s.Split(r, "-")
+		rangeBeginEnd := s.Split(r, "-")
 
-		rangeBegin, err := strconv.Atoi(s.TrimSuffix(rangeBeginrangeEnd[0], "\n"))
+		rangeBegin, err := strconv.Atoi(s.TrimSuffix(rangeBeginEnd[0], "\n"))
 		check(err)
-		rangeEnd, err := strconv.Atoi(s.TrimSuffix(rangeBeginrangeEnd[1], "\n"))
+		rangeEnd, err := strconv.Atoi(s.TrimSuffix(rangeBeginEnd[1], "\n"))
 		check(err)
 
 		for i := rangeBegin; i <= rangeEnd; i++ {
 			id := strconv.Itoa(i)
 
-			idLength := len(id)
-			if idLength%2 != 0 {
-				continue // Skip if id cannnot be symetrical
-			}
-
-			// "slice" operator: [low(inclusive):high(exclusive)]
-			left := id[:(idLength / 2)]
-			right := id[(idLength / 2):]
-
-			if left == right {
+			if isInvalid(id) {
 				invalidSum += i
 			}
 		}
 	}
 	fmt.Println(invalidSum)
+}
+
+func isInvalid(id string) bool {
+	idLength := len(id)
+	for stride := 1; stride < idLength; stride++ {
+		if idLength%stride != 0 {
+			continue
+		}
+
+		var segments []string
+		for i := 0; i < idLength; i += stride {
+			segment := id[i : i+stride]
+			segments = append(segments, segment)
+		}
+
+		invalid := true
+		for i := 1; i < len(segments); i++ {
+			if segments[i] != segments[i-1] {
+				invalid = false
+				break
+			}
+		}
+
+		if invalid {
+			return invalid
+		}
+	}
+	return false
 }
 
 func check(e error) {
