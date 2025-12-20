@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
 )
 
 func main() {
@@ -20,11 +18,9 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		bank := scanner.Text()
-		batteries := strings.Split(bank, "")
-
-		firstIndex, firstJoltage := maxJoltageIndex(batteries[:len(batteries)-1])
-		_, secondJoltage := maxJoltageIndex(batteries[firstIndex+1:])
+		batteryBank := scanner.Text()
+		firstIndex, firstJoltage := maxJoltage(batteryBank[:len(batteryBank)-1])
+		_, secondJoltage := maxJoltage(batteryBank[firstIndex+1:])
 
 		totalJoltageForBank := (firstJoltage * 10) + secondJoltage
 
@@ -34,18 +30,14 @@ func main() {
 	fmt.Println(totalJoltage)
 }
 
-func maxJoltageIndex(batteries []string) (index int, maxJoltage int) {
-	index = 0
-	maxJoltage = 0
-	for i, battery := range batteries {
-		joltage, err := strconv.Atoi(battery)
-		if err != nil {
-			panic(err)
-		}
-		if joltage > maxJoltage {
-			maxJoltage = joltage
-			index = i
+func maxJoltage(batteryBank string) (int, int) {
+	var joltageMaxIndex, joltageMax int
+	for i, battery := range batteryBank {
+		joltage := int(battery - '0')
+		if joltage > joltageMax {
+			joltageMax = joltage
+			joltageMaxIndex = i
 		}
 	}
-	return
+	return joltageMaxIndex, joltageMax
 }
