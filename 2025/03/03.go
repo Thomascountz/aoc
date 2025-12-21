@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
 )
 
@@ -15,40 +14,45 @@ func main() {
 	}
 	defer file.Close()
 
-	const activatedBatteries int = 12
+	const activeBatteryCount int = 12
 	var totalJoltage int
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		batteryBank := scanner.Text()
 
+		if len(batteryBank) == 0 {
+			continue
+		}
+
 		totalJoltageForBank := 0
-		searchStartIndex := 0
-		for i := range activatedBatteries {
-			searchStopIndex := (len(batteryBank)) - (activatedBatteries - 1 - i)
-			// fmt.Printf("battery:%s\tstart:2%d\tstop:2%d\n", batteryBank, searchStartIndex, searchStopIndex)
+		searchStartIdx := 0
+		for i := range activeBatteryCount {
+			searchStopIdx := len(batteryBank) - (activeBatteryCount - 1 - i)
 
-			joltageMaxBatteryIndex, joltageMax := findMaxJoltage(batteryBank, searchStartIndex, searchStopIndex)
+			joltageMaxIdx, joltageMax := findMaxJoltage(batteryBank, searchStartIdx, searchStopIdx)
 
-			searchStartIndex = joltageMaxBatteryIndex + 1
-			totalJoltageForBank += joltageMax * int((math.Pow10(activatedBatteries - 1 - i)))
+			searchStartIdx = joltageMaxIdx + 1
+			totalJoltageForBank = (totalJoltageForBank * 10) + joltageMax
 		}
 
 		totalJoltage += totalJoltageForBank
 
 	}
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
 	fmt.Println(totalJoltage)
 }
 
-func findMaxJoltage(batteryBank string, searchStartIndex, searchStopIndex int) (int, int) {
-	var joltageMaxIndex, joltageMax int
-	for i := searchStartIndex; i < searchStopIndex; i++ {
-		battery := batteryBank[i]
-		joltage := int(battery - '0')
+func findMaxJoltage(batteryBank string, searchStartIdx, searchStopIdx int) (int, int) {
+	var joltageMaxIdx, joltageMax int
+	for i := searchStartIdx; i < searchStopIdx; i++ {
+		joltage := int(batteryBank[i] - '0')
 		if joltage > joltageMax {
 			joltageMax = joltage
-			joltageMaxIndex = i
+			joltageMaxIdx = i
 		}
 	}
-	return joltageMaxIndex, joltageMax
+	return joltageMaxIdx, joltageMax
 }
