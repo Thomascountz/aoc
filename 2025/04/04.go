@@ -8,26 +8,21 @@ import (
 
 func main() {
 	path := "04.txt"
-
 	data, err := os.ReadFile(path)
-
 	if err != nil {
 		panic(err)
 	}
 
 	var totalRemovedRolls int
 
-	prevGrid := strings.Fields(string(data))
-	removedRolls, grid := removeRolls(prevGrid)
-
+	grid := strings.Fields(string(data))
+	removedRolls, grid := removeRolls(grid)
 	for {
 		if removedRolls == 0 {
 			break
 		}
 		totalRemovedRolls += removedRolls
-		prevGrid = grid
-
-		removedRolls, grid = removeRolls(prevGrid)
+		removedRolls, grid = removeRolls(grid)
 	}
 
 	fmt.Println(totalRemovedRolls)
@@ -35,17 +30,18 @@ func main() {
 
 func removeRolls(grid []string) (int, []string) {
 	var removed int
-	var newGrid []string
+	var newGrid = make([]string, 0, len(grid))
 
-	for rowNum, row := range grid {
+	for rowIdx, row := range grid {
 		var newRow strings.Builder
-		for colNum, char := range row {
+
+		for colIdx, char := range row {
 			var neighbors int
 
 			switch char {
 			case '@':
 				for i := -1; i <= 1; i++ {
-					if rowNum+i < 0 || rowNum+i > len(row)-1 {
+					if rowIdx+i < 0 || rowIdx+i > len(grid)-1 {
 						continue
 					}
 					for j := -1; j <= 1; j++ {
@@ -53,15 +49,14 @@ func removeRolls(grid []string) (int, []string) {
 							continue
 						}
 
-						if colNum+j < 0 || colNum+j > len(grid)-1 {
+						if colIdx+j < 0 || colIdx+j > len(row)-1 {
 							continue
 						}
 
-						if grid[rowNum+i][colNum+j] == '@' {
+						if grid[rowIdx+i][colIdx+j] == '@' {
 							neighbors++
 						}
 					}
-
 				}
 
 				if neighbors < 4 {
