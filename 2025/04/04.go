@@ -1,9 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
-	"strings"
+	"runtime"
 )
 
 func main() {
@@ -15,33 +16,45 @@ func main() {
 
 	var totalRemovedRolls int
 
-	grid := strings.Fields(string(data))
-	removedRolls, grid := removeRolls(grid)
+	grid := bytes.Fields(data)
+	rows := len(grid)
+	cols := len(grid[0])
+
+	gridCurr := make([][]byte, rows)
+	gridNext := make([][]byte, rows)
+
+	for i, line := range grid {
+		gridCurr[i] = make([]byte, cols)
+		copy(gridCurr[i], line)
+		gridNext[i] = make([]byte, cols)
+		copy(gridNext[i], line)
+	}
+
 	for {
-		if removedRolls == 0 {
+		removedRolls, changed := removeRolls(gridCurr, gridNext)
+		if !changed {
 			break
 		}
+
 		totalRemovedRolls += removedRolls
-		removedRolls, grid = removeRolls(grid)
+		gridCurr, gridNext = gridNext, gridCurr
 	}
 
 	fmt.Println(totalRemovedRolls)
+	printMemUsage()
 }
 
-func removeRolls(grid []string) (int, []string) {
+func removeRolls(sourceGrid, destGrid [][]byte) (int, bool) {
 	var removed int
-	var newGrid = make([]string, 0, len(grid))
-
-	for rowIdx, row := range grid {
-		var newRow strings.Builder
-
+	var changed bool
+	for rowIdx, row := range sourceGrid {
 		for colIdx, char := range row {
 			var neighbors int
 
 			switch char {
 			case '@':
 				for i := -1; i <= 1; i++ {
-					if rowIdx+i < 0 || rowIdx+i > len(grid)-1 {
+					if rowIdx+i < 0 || rowIdx+i > len(sourceGrid)-1 {
 						continue
 					}
 					for j := -1; j <= 1; j++ {
@@ -53,7 +66,7 @@ func removeRolls(grid []string) (int, []string) {
 							continue
 						}
 
-						if grid[rowIdx+i][colIdx+j] == '@' {
+						if sourceGrid[rowIdx+i][colIdx+j] == '@' {
 							neighbors++
 						}
 					}
@@ -61,17 +74,28 @@ func removeRolls(grid []string) (int, []string) {
 
 				if neighbors < 4 {
 					removed++
-					newRow.WriteRune('.')
+					changed = true
+					destGrid[rowIdx][colIdx] = '.'
 				} else {
-					newRow.WriteRune('@')
+					destGrid[rowIdx][colIdx] = '@'
 				}
 			case '.':
-				newRow.WriteRune('.')
+				destGrid[rowIdx][colIdx] = '.'
 			default:
 				panic("unreachable")
 			}
 		}
-		newGrid = append(newGrid, newRow.String())
 	}
-	return removed, newGrid
+	return removed, changed
+}
+
+// For info on each, see: https://golang.org/pkg/runtime/#MemStats
+func printMemUsage() {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	fmt.Printf("Alloc = %v MiB", m.Alloc/1024/1024)
+	fmt.Printf("\tTotalAlloc = %v MiB", m.TotalAlloc/1024/1024)
+	fmt.Printf("\tSys = %v MiB", m.Sys/1024/1024)
+	fmt.Printf("\tNumGC = %v\n", m.NumGC)
+	fmt.Printf("Total Mallocs: %d\n", m.Mallocs)
 }
