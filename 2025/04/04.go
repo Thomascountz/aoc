@@ -15,10 +15,30 @@ func main() {
 		panic(err)
 	}
 
-	var accessibleRolls int
-	grid := strings.Fields(string(data))
+	var totalRemovedRolls int
+
+	prevGrid := strings.Fields(string(data))
+	removedRolls, grid := removeRolls(prevGrid)
+
+	for {
+		if removedRolls == 0 {
+			break
+		}
+		totalRemovedRolls += removedRolls
+		prevGrid = grid
+
+		removedRolls, grid = removeRolls(prevGrid)
+	}
+
+	fmt.Println(totalRemovedRolls)
+}
+
+func removeRolls(grid []string) (int, []string) {
+	var removed int
+	var newGrid []string
 
 	for rowNum, row := range grid {
+		var newRow strings.Builder
 		for colNum, char := range row {
 			var neighbors int
 
@@ -45,17 +65,18 @@ func main() {
 				}
 
 				if neighbors < 4 {
-					// fmt.Printf("(%d, %d)\n", rowNum, colNum)
-					accessibleRolls++
+					removed++
+					newRow.WriteRune('.')
+				} else {
+					newRow.WriteRune('@')
 				}
 			case '.':
-				continue
+				newRow.WriteRune('.')
 			default:
 				panic("unreachable")
 			}
 		}
+		newGrid = append(newGrid, newRow.String())
 	}
-
-	fmt.Println(accessibleRolls)
-
+	return removed, newGrid
 }
