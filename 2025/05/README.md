@@ -14,3 +14,16 @@ const (
 	IdParsing                     // 1
 )
 ```
+
+### Variadic Functions and Slice Expansion
+- `append` is a variadic function: `func append([]T, ...T) []T`
+- The `...` expands a slice into individual elements when calling a variadic function
+
+```go
+// Remove element at index i from slice a
+a = append(a[:i], a[i+1:]...)
+```
+
+- This pattern is commonly used to **remove an element from a slice**
+  - `a[i+1:]` is a slice, but `append` expects elements (`T`), so `...` is required
+  - Without `...`, the code does not compile
