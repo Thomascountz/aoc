@@ -5,7 +5,6 @@ import (
 	"cmp"
 	"fmt"
 	"os"
-	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -13,7 +12,52 @@ import (
 
 type IngredientRange struct {
 	Start int
-	Stop  int
+	End   int
+}
+
+type IngredientRangeList []IngredientRange
+
+func (r IngredientRangeList) CollapseRanges() IngredientRangeList {
+	// Sort
+	sorted := slices.Clone(r)
+	slices.SortFunc(sorted, func(a, b IngredientRange) int {
+		return cmp.Compare(a.Start, b.Start)
+	})
+
+	// Merge
+	ranges := make(IngredientRangeList, 0, len(sorted))
+	ranges = append(ranges, sorted[0])
+
+	for _, ingredientRange := range sorted[1:] {
+		last := &ranges[len(ranges)-1]
+		if ingredientRange.Start > last.End {
+			ranges = append(ranges, ingredientRange)
+		} else {
+			last.End = max(ingredientRange.End, last.End)
+		}
+	}
+	return ranges
+}
+
+func (r IngredientRangeList) CountIds() int {
+	var ingredientIdsCount int
+	for _, ingredientRange := range r {
+		ingredientIdsCount += ingredientRange.End - ingredientRange.Start + 1
+	}
+	return ingredientIdsCount
+}
+
+func (r IngredientRangeList) Contains(id int) bool {
+	_, found := slices.BinarySearchFunc(r, id, func(ir IngredientRange, target int) int {
+		if ir.Start > target {
+			return 1
+		}
+		if ir.End < target {
+			return -1
+		}
+		return 0
+	})
+	return found
 }
 
 func main() {
@@ -24,8 +68,8 @@ func main() {
 	}
 	defer file.Close()
 
-	var ingredientRangesRaw []IngredientRange
-	var ingredientRanges []IngredientRange
+	var ingredientRangesRaw IngredientRangeList
+	var ingredientRanges IngredientRangeList
 	var ingredientCount int
 
 	scanner := bufio.NewScanner(file)
@@ -35,12 +79,7 @@ func main() {
 		line := scanner.Text()
 
 		if line == "" {
-			ingredientRanges = mergeRanges(ingredientRangesRaw)
-
-			ingredientCountMax := calculateMax(ingredientRanges)
-			fmt.Printf("Theoretical Fresh Ingredient Count: %d\n", ingredientCountMax)
-			assertEq("max fresh ingredients", ingredientCountMax, 354149806372909)
-
+			ingredientRanges = ingredientRangesRaw.CollapseRanges()
 			parsingRanges = false
 			continue
 		}
@@ -51,44 +90,16 @@ func main() {
 			continue
 		} else {
 			id := parseId(line)
-			if idWithinRange(id, ingredientRanges) {
+			if ingredientRanges.Contains(id) {
 				ingredientCount++
 			}
 		}
 	}
 
 	fmt.Printf("Fresh Ingredient Count: %d\n", ingredientCount)
-	assertEq("fresh ingredients", ingredientCount, 567)
-	printMemUsage()
-}
 
-func mergeRanges(rangesRaw []IngredientRange) []IngredientRange {
-	// Sort
-	slices.SortFunc(rangesRaw, func(a, b IngredientRange) int {
-		return cmp.Compare(a.Start, b.Start)
-	})
-
-	// Merge
-	ranges := make([]IngredientRange, 0, len(rangesRaw))
-	ranges = append(ranges, rangesRaw[0])
-
-	for _, ingredientRange := range rangesRaw[1:] {
-		last := &ranges[len(ranges)-1]
-		if ingredientRange.Start > last.Stop {
-			ranges = append(ranges, ingredientRange)
-		} else {
-			last.Stop = max(ingredientRange.Stop, last.Stop)
-		}
-	}
-	return ranges
-}
-
-func calculateMax(ranges []IngredientRange) int {
-	var ingredientCountMax int
-	for _, ingredientRange := range ranges {
-		ingredientCountMax += ingredientRange.Stop - ingredientRange.Start + 1
-	}
-	return ingredientCountMax
+	ingredientIdsCount := ingredientRanges.CountIds()
+	fmt.Printf("Theoretical Fresh Ingredient Count: %d\n", ingredientIdsCount)
 }
 
 func parseRange(line string) IngredientRange {
@@ -116,30 +127,4 @@ func parseId(line string) int {
 		panic("parse fail (id)")
 	}
 	return id
-}
-
-func idWithinRange(id int, ranges []IngredientRange) bool {
-	return slices.ContainsFunc(ranges, func(ingredientRange IngredientRange) bool {
-		return id >= ingredientRange.Start && id <= ingredientRange.Stop
-	})
-}
-
-func assertEq(desc string, got int, want int) {
-	if want != got {
-		fmt.Printf("FAIL - %s\n\tgot: %-15d\twant: %-15d\tdiff: %-15d\n", desc, got, want, got-want)
-	} else {
-		fmt.Printf("PASS - %s\n\tgot: %-15d\n", desc, got)
-	}
-}
-
-func printMemUsage() {
-	var m runtime.MemStats
-	runtime.ReadMemStats(&m)
-	fmt.Println()
-	fmt.Println("====================")
-	fmt.Printf("Alloc = %v MiB", m.Alloc/1024/1024)
-	fmt.Printf("\tTotalAlloc = %v MiB", m.TotalAlloc/1024/1024)
-	fmt.Printf("\tSys = %v MiB", m.Sys/1024/1024)
-	fmt.Printf("\tNumGC = %v\n", m.NumGC)
-	fmt.Printf("Total Mallocs: %d\n", m.Mallocs)
 }

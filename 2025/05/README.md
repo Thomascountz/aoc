@@ -28,3 +28,26 @@ a = append(a[:i], a[i+1:]...)
   - `a[i+1:]` is a slice, but `append` expects elements (`T`), so `...` is required
   - Without `...`, the code does not compile
 - Doing this while iterating over a slice isn't a great idea, as it forces Go to shift all the elements in memory
+
+### `slices.BinarySearchFunc`
+- Performs a binary search on a **sorted** slice using a custom comparison function
+- The comparison function should return:
+  - A negative number if the first argument is less than the second
+  - Zero if they are equal
+  - A positive number if the first argument is greater than the second
+  
+```go
+	_, found := slices.BinarySearchFunc(r, id, func(ir IngredientRange, target int) int {
+		if ir.Start > target {
+			return 1
+		}
+		if ir.End < target {
+			return -1
+		}
+		return 0
+	})
+	return found
+	```
+	
+	- In this example, `id` is being passed into the comparison function as `target`
+	- The function checks if `id` is within the range defined by `ir.Start` and `ir.End`, and conforms to the "`cmp`" signature.
