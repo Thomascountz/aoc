@@ -24,9 +24,9 @@ func main() {
 	}
 	defer file.Close()
 
-	var freshIngredientRanges []IngredientRange
-	var freshIngredientIdCount int
-	var freshIngredientIdCountMax int
+	var ingredientRangesRaw []IngredientRange
+	var ingredientRanges []IngredientRange
+	var ingredientCount int
 
 	scanner := bufio.NewScanner(file)
 
@@ -35,74 +35,101 @@ func main() {
 		line := scanner.Text()
 
 		if line == "" {
-			fmt.Printf("Before Merge: %d\n", len(freshIngredientRanges))
+			ingredientRanges = mergeRanges(ingredientRangesRaw)
 
-			// Sort
-			slices.SortFunc(freshIngredientRanges, func(a, b IngredientRange) int {
-				return cmp.Compare(a.Start, b.Start)
-			})
-
-			// Merge
-			for i := 1; i < len(freshIngredientRanges); i++ {
-				// If the current starts at or before the previous stops
-				if freshIngredientRanges[i].Start <= freshIngredientRanges[i-1].Stop {
-					// If the current stops at or after the previous stops
-					if freshIngredientRanges[i].Stop >= freshIngredientRanges[i-1].Stop {
-						// Extend the previous' stop to that of the current
-						freshIngredientRanges[i-1].Stop = freshIngredientRanges[i].Stop
-					}
-					// Remove the current
-					freshIngredientRanges = append(freshIngredientRanges[:i], freshIngredientRanges[i+1:]...)
-					// Take a step back
-					i -= 1
-				}
-			}
-
-			// Calc Theoretical Max
-			for _, freshIngredientRange := range freshIngredientRanges {
-				freshIngredientIdCountMax += (freshIngredientRange.Stop - freshIngredientRange.Start) + 1
-			}
+			ingredientCountMax := calculateMax(ingredientRanges)
+			fmt.Printf("Theoretical Fresh Ingredient Count: %d\n", ingredientCountMax)
+			assertEq("max fresh ingredients", ingredientCountMax, 354149806372909)
 
 			parsingRanges = false
-			fmt.Printf("After Merge: %d\n", len(freshIngredientRanges))
 			continue
 		}
 
 		if parsingRanges {
-			before, after, found := strings.Cut(line, "-")
-			if !found {
-				panic("parse fail (Cut)")
-			}
-
-			start, err := strconv.Atoi(before)
-			if err != nil {
-				panic("parse fail (start)")
-			}
-
-			stop, err := strconv.Atoi(after)
-			if err != nil {
-				panic("parse fail (stop)")
-			}
-
-			freshIngredientRanges = append(freshIngredientRanges, IngredientRange{start, stop})
-		} else { // !parsingRanges
-
-			id, err := strconv.Atoi(line)
-			if err != nil {
-				panic("parse fail (id)")
-			}
-
-			if slices.ContainsFunc(freshIngredientRanges, func(freshIngredientRange IngredientRange) bool {
-				return id >= freshIngredientRange.Start && id <= freshIngredientRange.Stop
-			}) {
-				freshIngredientIdCount++
+			parsedRange := parseRange(line)
+			ingredientRangesRaw = append(ingredientRangesRaw, parsedRange)
+			continue
+		} else {
+			id := parseId(line)
+			if idWithinRange(id, ingredientRanges) {
+				ingredientCount++
 			}
 		}
 	}
 
-	fmt.Printf("Fresh Ingredient Count: %d\n", freshIngredientIdCount)
-	fmt.Printf("Theoretical Fresh Ingredient Count: %d\n", freshIngredientIdCountMax)
+	fmt.Printf("Fresh Ingredient Count: %d\n", ingredientCount)
+	assertEq("fresh ingredients", ingredientCount, 567)
 	printMemUsage()
+}
+
+func mergeRanges(rangesRaw []IngredientRange) []IngredientRange {
+	// Sort
+	slices.SortFunc(rangesRaw, func(a, b IngredientRange) int {
+		return cmp.Compare(a.Start, b.Start)
+	})
+
+	// Merge
+	ranges := make([]IngredientRange, 0, len(rangesRaw))
+	ranges = append(ranges, rangesRaw[0])
+
+	for _, ingredientRange := range rangesRaw[1:] {
+		last := &ranges[len(ranges)-1]
+		if ingredientRange.Start > last.Stop {
+			ranges = append(ranges, ingredientRange)
+		} else {
+			last.Stop = max(ingredientRange.Stop, last.Stop)
+		}
+	}
+	return ranges
+}
+
+func calculateMax(ranges []IngredientRange) int {
+	var ingredientCountMax int
+	for _, ingredientRange := range ranges {
+		ingredientCountMax += ingredientRange.Stop - ingredientRange.Start + 1
+	}
+	return ingredientCountMax
+}
+
+func parseRange(line string) IngredientRange {
+	before, after, found := strings.Cut(line, "-")
+	if !found {
+		panic("parse fail (Cut)")
+	}
+
+	start, err := strconv.Atoi(before)
+	if err != nil {
+		panic("parse fail (start)")
+	}
+
+	stop, err := strconv.Atoi(after)
+	if err != nil {
+		panic("parse fail (stop)")
+	}
+
+	return IngredientRange{start, stop}
+}
+
+func parseId(line string) int {
+	id, err := strconv.Atoi(line)
+	if err != nil {
+		panic("parse fail (id)")
+	}
+	return id
+}
+
+func idWithinRange(id int, ranges []IngredientRange) bool {
+	return slices.ContainsFunc(ranges, func(ingredientRange IngredientRange) bool {
+		return id >= ingredientRange.Start && id <= ingredientRange.Stop
+	})
+}
+
+func assertEq(desc string, got int, want int) {
+	if want != got {
+		fmt.Printf("FAIL - %s\n\tgot: %-15d\twant: %-15d\tdiff: %-15d\n", desc, got, want, got-want)
+	} else {
+		fmt.Printf("PASS - %s\n\tgot: %-15d\n", desc, got)
+	}
 }
 
 func printMemUsage() {

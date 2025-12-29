@@ -27,3 +27,4 @@ a = append(a[:i], a[i+1:]...)
 - This pattern is commonly used to **remove an element from a slice**
   - `a[i+1:]` is a slice, but `append` expects elements (`T`), so `...` is required
   - Without `...`, the code does not compile
+- Doing this while iterating over a slice isn't a great idea, as it forces Go to shift all the elements in memory
